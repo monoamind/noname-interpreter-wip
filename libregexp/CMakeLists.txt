@@ -8,6 +8,7 @@ project(LibRegExp
 
 set(SOURCES
     NFA.cpp
+    Scanner.cpp
 )
 
 add_library(LibRegExp)
