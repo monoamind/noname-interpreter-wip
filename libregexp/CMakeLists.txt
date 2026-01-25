@@ -11,6 +11,7 @@ set(SOURCES
     NFA.cpp
     Parser.cpp
     ParseTree.cpp
+    Rewriter.cpp
     Scanner.cpp
 )
 
