@@ -7,7 +7,10 @@ project(LibRegExp
 )
 
 set(SOURCES
+    Ast.cpp
     NFA.cpp
+    Parser.cpp
+    ParseTree.cpp
     Scanner.cpp
 )
 

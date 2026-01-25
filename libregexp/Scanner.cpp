@@ -11,7 +11,7 @@ const std::vector<Token>& Scanner::ScanTokens()
         tokens_.emplace_back(ScanToken());
     }
 
-    tokens_.push_back(Token::EndOfInput());
+    tokens_.emplace_back(Token::EndOfInput());
     return tokens_;
 }
 
