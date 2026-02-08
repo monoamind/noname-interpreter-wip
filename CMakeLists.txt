@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(pythonish-interpreter LANGUAGES CXX)
+project(noname-interpreter LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,9 +12,10 @@ set(APP_CMAKE_DIR ${APP_ROOT_DIR}/cmake)
 include_directories(${APP_INCLUDE_DIR})
 
 add_subdirectory(libregexp)
+add_subdirectory(libinterpret)
 add_subdirectory(tests)
 
-add_executable(pythonish-interpreter)
-target_sources(pythonish-interpreter PRIVATE app/Main.cpp)
+add_executable(noname-interpreter)
+target_sources(noname-interpreter PRIVATE app/Main.cpp)
 
-target_link_libraries(pythonish-interpreter PRIVATE LibRegExp)
+target_link_libraries(noname-interpreter PRIVATE LibRegExp LibInterpret)

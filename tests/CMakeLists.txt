@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 
-project(pythonish-interpreter-test)
+project(noname-interpreter-test)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # GOOGLE TEST INSTALLATION
@@ -30,9 +30,17 @@ include(GoogleTest)
 # ALL TESTS
 # ----------------------------------------------------------------------------------------------------------------------
 
+file(GLOB INTERPRETER_TESTS ${APP_TEST_DIR}/interpret/*.cc)
 file(GLOB REGEXP_TESTS ${APP_TEST_DIR}/regexp/*.cc)
 
+add_executable(InterpreterTests ${INTERPRETER_TESTS})
 add_executable(RegExpTests ${REGEXP_TESTS})
+
+target_link_libraries(InterpreterTests PRIVATE
+    LibInterpret
+    GTest::gtest_main
+    GTest::gmock_main
+)
 
 target_link_libraries(RegExpTests PRIVATE
     LibRegExp
