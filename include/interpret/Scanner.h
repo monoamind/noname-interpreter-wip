@@ -11,7 +11,6 @@ class Scanner
     std::string source_ = {};
     std::vector<Token> tokens_ = {};
     size_t pos_ = 0;
-    size_t begin_ = 0;
     size_t line_ = 1;
 
 public:

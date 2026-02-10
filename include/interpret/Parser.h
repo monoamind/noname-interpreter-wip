@@ -20,17 +20,36 @@ public:
     {}
 
 public:
-    Ptr<ExprAst> Parse();
+    PtrVector<StmtAst> Parse();
 
 private:
-    Ptr<ExprAst> Expression();
+    PtrVector<StmtAst> Block();
 
+    Ptr<ExprAst> Expression();
+    Ptr<ExprAst> Assignment();
+    Ptr<ExprAst> Or();
+    Ptr<ExprAst> And();
     Ptr<ExprAst> Equality();
     Ptr<ExprAst> Comparison();
     Ptr<ExprAst> Addition();
     Ptr<ExprAst> Multiplication();
     Ptr<ExprAst> Unary();
     Ptr<ExprAst> Primary();
+
+    Ptr<StmtAst> Statement();
+    Ptr<StmtAst> Declaration();
+    Ptr<StmtAst> VarDeclaration();
+
+    Ptr<StmtAst> ExpressionStatement();
+    Ptr<StmtAst> ForStatement();
+    // Ptr<StmtAst> FunctionStatement();
+    Ptr<StmtAst> IfStatement();
+    Ptr<StmtAst> PrintStatement();
+    Ptr<StmtAst> ReturnStatement();
+    Ptr<StmtAst> VarStatement();
+    Ptr<StmtAst> WhileStatement();
+
+    void RecoverFromError();
 
 private:
     bool IsAtEnd() const noexcept
@@ -70,7 +89,7 @@ private:
     Token Consume(TokenType type, const std::string& errorMsg)
     {
         if (!Check(type))
-            RaiseError(Peek(), errorMsg);
+            throw RaiseError(Peek(), errorMsg);
 
         return tokens_[pos_++];
     }
@@ -87,7 +106,7 @@ private:
     }
 
 private:
-    TypeError RaiseError(const Token& token, const std::string& msg);
+    ParseError RaiseError(const Token& token, const std::string& msg);
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

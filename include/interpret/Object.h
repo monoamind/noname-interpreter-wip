@@ -55,6 +55,8 @@ public:
     std::string TypeName() const;
 
     bool IsNull() const noexcept;
+    bool IsNumeric() const noexcept;
+    bool IsString() const noexcept;
 
 private:
     bool ToBool() const;

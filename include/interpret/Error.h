@@ -1,14 +1,16 @@
 #pragma once
 #include <stdexcept>
 
+#include "Token.h"
+
 namespace Core
 {
 // ---------------------------------------------------------------------------------------------------------------------
 
-class OperandError : public std::invalid_argument
+struct ParseError : std::runtime_error
 {
-    explicit OperandError(const std::string& msg)
-        : std::invalid_argument(msg)
+    explicit ParseError(const std::string& msg)
+        : std::runtime_error(msg)
     {}
 };
 
@@ -23,13 +25,15 @@ struct TypeError : std::invalid_argument
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-class RuntimeError : public std::runtime_error
+struct RuntimeError : std::runtime_error
 {
-    explicit RuntimeError(const std::string& msg)
+    explicit RuntimeError(Token token, const std::string& msg)
         : std::runtime_error(msg)
+        , token(token)
     {}
+
+    Token token;
 };
 
-
 // ---------------------------------------------------------------------------------------------------------------------
-} // namespace Interpret
+} // namespace Core

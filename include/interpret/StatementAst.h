@@ -47,6 +47,30 @@ public:
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+struct FunctionStmt : StmtAst
+{
+    Token name_;
+    Vector<Token> params_ = {};
+    PtrVector<StmtAst> body_ = {};
+
+public:
+    explicit FunctionStmt(const Token& name, Vector<Token> params, PtrVector<StmtAst> body)
+        : name_(name)
+        , params_(std::move(params))
+        , body_(std::move(body))
+    {}
+
+    ~FunctionStmt() override = default;
+
+public:
+    void Accept(StmtVisitor& visitor) const override
+    {
+        visitor.Visit(*this);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 struct IfStmt : StmtAst
 {
     Ptr<ExprAst> condition_ = {};
@@ -91,6 +115,28 @@ public:
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+struct ReturnStmt : StmtAst
+{
+    Token keyword_;
+    Ptr<ExprAst> value_;
+
+public:
+    explicit ReturnStmt(const Token& token, Ptr<ExprAst> expr)
+        : keyword_(token)
+        , value_(std::move(expr))
+    {}
+
+    ~ReturnStmt() override = default;
+
+public:
+    void Accept(StmtVisitor& visitor) const override
+    {
+        visitor.Visit(*this);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 struct VarStmt : StmtAst
 {
     Token name_;
@@ -103,6 +149,28 @@ public:
     {}
 
     ~VarStmt() override = default;
+
+public:
+    void Accept(StmtVisitor& visitor) const override
+    {
+        visitor.Visit(*this);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+struct WhileStmt : StmtAst
+{
+    Ptr<ExprAst> condition = {};
+    Ptr<StmtAst> body = {};
+
+public:
+    explicit WhileStmt(Ptr<ExprAst> condition, Ptr<StmtAst> body)
+        : condition(std::move(condition))
+        , body(std::move(body))
+    {}
+
+    ~WhileStmt() override = default;
 
 public:
     void Accept(StmtVisitor& visitor) const override

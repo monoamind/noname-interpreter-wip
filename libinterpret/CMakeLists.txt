@@ -7,11 +7,12 @@ project(LibInterpret
 )
 
 set(SOURCES
-    ExprParser.cpp
     Interpreter.cpp
-    Object.cpp
-    Parser.cpp
     Scanner.cpp
+    Parser.cpp
+    ExpressionParser.cpp
+    StatementParser.cpp
+    Object.cpp
 )
 
 add_library(LibInterpret)

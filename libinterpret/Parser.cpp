@@ -1,26 +1,43 @@
+#include "Error.h"
 #include "Parser.h"
 #include "Runner.h"
-#include <iostream>
+#include "StatementAst.h"
 
 using namespace Core;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-Ptr<ExprAst> Parser::Parse()
+PtrVector<StmtAst> Parser::Parse()
 {
-    try
+    PtrVector<StmtAst> statements;
+
+    while (!IsAtEnd())
+        statements.emplace_back(Declaration());
+
+    return statements;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void Parser::RecoverFromError()
+{
+    using enum TokenType;
+    Advance();
+
+    while (!IsAtEnd())
     {
-        return Expression();
-    }
-    catch (TypeError& e)
-    {
-        std::cerr << e.what();
-        return nullptr;
+        if (Previous().IsOfType(Semicolon))
+            return;
+
+        if (Peek().IsOfType(Func, Var, For, If, While, Print, Return))
+            return;
+
+        Advance();
     }
 }
 
-TypeError Parser::RaiseError(const Token& token, const std::string& msg)
+ParseError Parser::RaiseError(const Token& token, const std::string& msg)
 {
     Runner::Error(token, msg);
-    return TypeError(msg);
+    return ParseError(msg);
 }

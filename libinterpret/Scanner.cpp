@@ -125,7 +125,7 @@ void Scanner::AddSymbol(TokenType type)
 
 void Scanner::AddNumber()
 {
-    Regex::RegExp regexp("[0-9]+.?[0-9]?");
+    Regex::RegExp regexp("[0-9]+.?[0-9]*");
 
     auto numStr = regexp.LongestMatch(source_, pos_);
     pos_ += numStr.size();
@@ -135,13 +135,13 @@ void Scanner::AddNumber()
 
 void Scanner::AddString()
 {
-    Advance();
-
-    char ch = Peek();
-    std::string str = {ch};
+    char ch = Advance();
+    std::string str;
 
     while (ch != '"' && !IsAtEnd())
     {
+        str += ch;
+
         if (ch == '\n')
             line_++;
 
@@ -178,16 +178,6 @@ bool Scanner::Match(char expected)
 
     ++pos_;
     return true;
-}
-
-bool Scanner::IsAlpha(char ch) const
-{
-    return std::isalpha(ch) || ch == '_';
-}
-
-bool Scanner::IsAlphaNumeric(char ch) const
-{
-    return IsAlpha(ch) || std::isdigit(ch);
 }
 
 bool Scanner::IsAtEnd() const noexcept

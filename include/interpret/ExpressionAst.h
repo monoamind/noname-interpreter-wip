@@ -9,6 +9,28 @@ namespace Core
 {
 // ---------------------------------------------------------------------------------------------------------------------
 
+struct AssignExpr : ExprAst
+{
+    Token name;
+    Ptr<ExprAst> value = {};
+
+public:
+    explicit AssignExpr(const Token& name, Ptr<ExprAst> value)
+        : name(name)
+        , value(std::move(value))
+    {}
+
+    ~AssignExpr() override = default;
+
+public:
+    void Accept(ExprVisitor& visitor) const override
+    {
+        visitor.Visit(*this);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 struct BinaryExpr : ExprAst
 {
     Ptr<ExprAst> left_ = {};
@@ -23,6 +45,30 @@ public:
     {}
 
     ~BinaryExpr() override = default;
+
+public:
+    void Accept(ExprVisitor& visitor) const override
+    {
+        visitor.Visit(*this);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+struct CallExpr : ExprAst
+{
+    Ptr<ExprAst> callee = {};
+    Token paren;
+    PtrVector<ExprAst> args = {};
+
+public:
+    explicit CallExpr(Ptr<ExprAst> callee, const Token& paren, PtrVector<ExprAst> args)
+        : callee(std::move(callee))
+        , paren(paren)
+        , args(std::move(args))
+    {}
+
+    ~CallExpr() override = default;
 
 public:
     void Accept(ExprVisitor& visitor) const override
@@ -118,4 +164,24 @@ public:
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
-} // namespace Interpret
+
+struct VariableExpr : ExprAst
+{
+    Token name;
+
+public:
+    explicit VariableExpr(const Token& name)
+        : name(name)
+    {}
+
+    ~VariableExpr() override = default;
+
+public:
+    void Accept(ExprVisitor& visitor) const override
+    {
+        visitor.Visit(*this);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+} // namespace Core

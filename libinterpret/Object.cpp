@@ -25,7 +25,17 @@ std::string Object::TypeName() const
 
 bool Object::IsNull() const noexcept
 {
-    return type_ != ObjectType::Null;
+    return type_ == ObjectType::Null;
+}
+
+bool Object::IsNumeric() const noexcept
+{
+    return (type_ == ObjectType::Double || type_ == ObjectType::Bool);
+}
+
+bool Object::IsString() const noexcept
+{
+    return type_ == ObjectType::String;
 }
 
 double Object::ToDouble() const
@@ -116,6 +126,11 @@ std::ostream& Core::operator<<(std::ostream& os, const Object& obj)
 
 Object Core::operator+(const Object& lhs, const Object& rhs)
 {
+    if (lhs.IsString() && rhs.IsString())
+    {
+        return lhs.ToString() + rhs.ToString();
+    }
+
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 

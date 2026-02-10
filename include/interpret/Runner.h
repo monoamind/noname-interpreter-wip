@@ -22,12 +22,12 @@ public:
         Scanner scanner(source);
         auto& tokens = scanner.ScanTokens();
         Parser parser(tokens);
-        auto exprRoot = parser.Parse();
+        auto statements = parser.Parse();
 
         if (hadError_)
             return;
 
-        interpreter.Interpret(*exprRoot);
+        interpreter.Interpret(statements);
     }
 
     static void RunPrompt()
@@ -41,6 +41,12 @@ public:
             Run(source);
             hadError_ = false;
         }
+    }
+
+    static void Report(size_t line, const std::string& where, const std::string& msg)
+    {
+        std::cerr << std::format("[line {}] Error {}: {}", line, where, msg);
+        hadError_ = true;
     }
 
     static void Error(size_t line, const std::string& msg)
@@ -59,11 +65,10 @@ public:
         Report(token.Line(), "at '" + token.Lexeme() + "'", msg);
     }
 
-    static void Report(size_t line, const std::string& where, const std::string& msg)
+    static void RuntimeError(const RuntimeError& err)
     {
-        const static auto fmt = std::format("[line {}] Error {}: ", line, where, msg);
-        std::cerr << fmt;
-        hadError_ = true;
+        std::cout << std::format("{}\n[line {}]", err.what(), err.token.Line());
+        hadRuntimeError_ = true;
     }
 };
 
