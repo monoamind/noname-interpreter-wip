@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "Error.h"
 #include "ExpressionAst.h"
-#include "Scanner.h"
 
 namespace Core
 {
@@ -24,6 +23,7 @@ public:
 
 private:
     PtrVector<StmtAst> Block();
+    Ptr<FunctionStmt> Function(const std::string& kind);
 
     Ptr<ExprAst> Expression();
     Ptr<ExprAst> Assignment();
@@ -34,80 +34,49 @@ private:
     Ptr<ExprAst> Addition();
     Ptr<ExprAst> Multiplication();
     Ptr<ExprAst> Unary();
+    Ptr<ExprAst> FinishCall(Ptr<ExprAst> callee);
+    Ptr<ExprAst> Call();
     Ptr<ExprAst> Primary();
 
     Ptr<StmtAst> Statement();
     Ptr<StmtAst> Declaration();
     Ptr<StmtAst> VarDeclaration();
-
     Ptr<StmtAst> ExpressionStatement();
     Ptr<StmtAst> ForStatement();
-    // Ptr<StmtAst> FunctionStatement();
     Ptr<StmtAst> IfStatement();
     Ptr<StmtAst> PrintStatement();
     Ptr<StmtAst> ReturnStatement();
-    Ptr<StmtAst> VarStatement();
     Ptr<StmtAst> WhileStatement();
 
-    void RecoverFromError();
+private:
+    bool IsAtEnd() const noexcept;
+
+    const Token& Peek() const;
+    const Token& Previous() const;
+    const Token& Advance();
+
+    Token Consume(TokenType type, const std::string& errorMsg);
+
+    bool Check(TokenType type) const;
+    bool Match(auto... types);
 
 private:
-    bool IsAtEnd() const noexcept
-    {
-        return Peek().IsEof();
-    }
-
-    const Token& Peek() const
-    {
-        return tokens_[pos_];
-    }
-
-    const Token& Previous() const
-    {
-        return tokens_[pos_ -  1];
-    }
-
-    const Token& Advance()
-    {
-        if (!IsAtEnd())
-            ++pos_;
-
-        return Previous();
-    }
-
-    void MoveBack()
-    {
-        if (pos_ > 0)
-            pos_--;
-    }
-
-    bool Check(TokenType type) const
-    {
-        return !IsAtEnd() && Peek().IsOfType(type);
-    }
-
-    Token Consume(TokenType type, const std::string& errorMsg)
-    {
-        if (!Check(type))
-            throw RaiseError(Peek(), errorMsg);
-
-        return tokens_[pos_++];
-    }
-
-    bool Match(auto... types)
-    {
-        if (bool result = (Peek().IsOfType(types) || ...); result)
-        {
-            ++pos_;
-            return true;
-        }
-
-        return false;
-    }
-
-private:
-    ParseError RaiseError(const Token& token, const std::string& msg);
+    void RecoverAfterError();
+    static ParseError RaiseError(const Token& token, const std::string& msg);
 };
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+bool Parser::Match(auto... types)
+{
+    if (bool result = (Peek().IsOfType(types) || ...); result)
+    {
+        ++pos_;
+        return true;
+    }
+
+    return false;
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 } // namespace Core

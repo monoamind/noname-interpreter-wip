@@ -1,9 +1,9 @@
 #pragma once
+#include "Common.h"
 #include "Interpreter.h"
 #include "Parser.h"
+#include "Resolver.h"
 #include "Scanner.h"
-
-#include <iostream>
 
 namespace Core
 {
@@ -11,23 +11,31 @@ namespace Core
 
 class Runner
 {
-    inline static Interpreter interpreter = {};
-
+    inline static Interpreter interpreter_ = {};
     inline static bool hadError_ = false;
     inline static bool hadRuntimeError_ = false;
 
 public:
-    static void Run(const std::string& source)
+    static Object Run(const std::string& source)
     {
         Scanner scanner(source);
         auto& tokens = scanner.ScanTokens();
         Parser parser(tokens);
         auto statements = parser.Parse();
 
+        // Syntax error.
         if (hadError_)
-            return;
+            return {};
 
-        interpreter.Interpret(statements);
+        Resolver resolver(interpreter_);
+        resolver.Resolve(statements);
+
+        // Resolution error.
+        if (hadError_)
+            return {};
+
+        interpreter_.Interpret(statements);
+        return interpreter_.Result();
     }
 
     static void RunPrompt()
@@ -36,16 +44,23 @@ public:
 
         while (true)
         {
-            std::cout << "\n> ";
+            std::cout << "> ";
             std::getline(std::cin, source);
+
             Run(source);
+
             hadError_ = false;
         }
     }
 
+    static void Reset()
+    {
+        interpreter_.Reset();
+    }
+
     static void Report(size_t line, const std::string& where, const std::string& msg)
     {
-        std::cerr << std::format("[line {}] Error {}: {}", line, where, msg);
+        std::cout << std::format("[line {}] Error {}: {}\n", line, where, msg);
         hadError_ = true;
     }
 
@@ -67,7 +82,7 @@ public:
 
     static void RuntimeError(const RuntimeError& err)
     {
-        std::cout << std::format("{}\n[line {}]", err.what(), err.token.Line());
+        std::cout << std::format("[Line {}]: {}", err.token.Line(), err.what());
         hadRuntimeError_ = true;
     }
 };

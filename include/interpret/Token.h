@@ -2,8 +2,6 @@
 #include "Object.h"
 #include "TokenType.h"
 
-#include <charconv>
-
 namespace Core
 {
 // ---------------------------------------------------------------------------------------------------------------------
@@ -15,19 +13,15 @@ class Token
     std::string lexeme_ = {};
     std::optional<Object> literal_ = {};
 
-public:
-    Token() = default;
-
-    Token(TokenType type, size_t line, std::string lexeme = {}, std::string literal = {})
+    Token(TokenType type, size_t line, std::string lexeme = {})
         : type_(type)
         , line_(line)
         , lexeme_(std::move(lexeme))
-    {
-        if (!literal.empty())
-            literal_ = std::move(literal);
-    }
+    {}
 
 public:
+    Token() = default;
+
     TokenType Type() const noexcept
     {
         return type_;
@@ -48,17 +42,7 @@ public:
         return literal_;
     }
 
-    void SetLiteral(const Object& value)
-    {
-        literal_ = value;
-    }
-
 public:
-    bool HasLexeme(const std::string& lexeme) const
-    {
-        return lexeme == lexeme_;
-    }
-
     template <typename... Args>
     requires (std::is_same_v<TokenType, Args> || ...)
     bool IsOfType(Args... types) const noexcept
@@ -77,42 +61,13 @@ public:
     }
 
 public:
-    static Token Error(size_t line)
-    {
-        return {TokenType::Error, line};
-    }
-
-    static Token Eof(size_t line)
-    {
-        return {TokenType::Eof, line};
-    }
-
-    static Token FromIdentifier(const std::string& str, size_t line)
-    {
-        return {TokenType::Identifier, line, str};
-    }
-
-    static Token FromNumber(const std::string& str, size_t line)
-    {
-        Token result = {TokenType::Number, line, str};
-
-        auto from = str.data();
-        auto to = from + str.size();
-
-        double value;
-        std::from_chars(from, to, value);
-
-        result.literal_ = value;
-        return result;
-    }
-
-    static Token FromString(const std::string& str, size_t line)
-    {
-        Token result = {TokenType::String, line, str};
-
-        result.literal_ = str; 
-        return result;
-    }
+    static Token EndOfFile(size_t line);
+    static Token FromSymbol(char symbol, size_t line);
+    static Token FromTwoSymbols(const std::string& twoSymbols, size_t line);
+    static Token FromIdentifier(const std::string& str, size_t line);
+    static Token FromKeyword(TokenType kwType, const std::string& kwStr, size_t line);
+    static Token FromNumber(const std::string& str, size_t line);
+    static Token FromString(const std::string& str, size_t line);
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

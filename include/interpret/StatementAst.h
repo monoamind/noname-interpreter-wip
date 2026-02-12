@@ -9,11 +9,11 @@ namespace Core
 
 struct BlockStmt : StmtAst
 {
-    PtrVector<StmtAst> statements_ = {};
+    PtrVector<StmtAst> statements = {};
 
 public:
     explicit BlockStmt(PtrVector<StmtAst> statements)
-        : statements_(std::move(statements))
+        : statements(std::move(statements))
     {}
 
     ~BlockStmt() override = default;
@@ -21,7 +21,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -29,11 +29,11 @@ public:
 
 struct ExpressionStmt : StmtAst
 {
-    Ptr<ExprAst> expr_ = {};
+    Ptr<ExprAst> expr = {};
 
 public:
     explicit ExpressionStmt(Ptr<ExprAst> expr)
-        : expr_(std::move(expr))
+        : expr(std::move(expr))
     {}
 
     ~ExpressionStmt() override = default;
@@ -41,7 +41,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -49,15 +49,15 @@ public:
 
 struct FunctionStmt : StmtAst
 {
-    Token name_;
+    Token name;
     Vector<Token> params_ = {};
-    PtrVector<StmtAst> body_ = {};
+    PtrVector<StmtAst> body = {};
 
 public:
     explicit FunctionStmt(const Token& name, Vector<Token> params, PtrVector<StmtAst> body)
-        : name_(name)
+        : name(name)
         , params_(std::move(params))
-        , body_(std::move(body))
+        , body(std::move(body))
     {}
 
     ~FunctionStmt() override = default;
@@ -65,7 +65,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -73,15 +73,15 @@ public:
 
 struct IfStmt : StmtAst
 {
-    Ptr<ExprAst> condition_ = {};
-    Ptr<StmtAst> thenBranch_ = {};
-    Ptr<StmtAst> elseBranch_ = {};
+    Ptr<ExprAst> condition = {};
+    Ptr<StmtAst> thenBranch = {};
+    Ptr<StmtAst> elseBranch = {};
 
 public:
     explicit IfStmt(Ptr<ExprAst> condition, Ptr<StmtAst> thenBranch, Ptr<StmtAst> elseBranch)
-        : condition_(std::move(condition))
-        , thenBranch_(std::move(thenBranch))
-        , elseBranch_(std::move(elseBranch))
+        : condition(std::move(condition))
+        , thenBranch(std::move(thenBranch))
+        , elseBranch(std::move(elseBranch))
     {}
 
     ~IfStmt() override = default;
@@ -89,7 +89,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -97,11 +97,11 @@ public:
 
 struct PrintStmt : StmtAst
 {
-    Ptr<ExprAst> expression_ = {};
+    Ptr<ExprAst> expression = {};
 
 public:
     explicit PrintStmt(Ptr<ExprAst> expression)
-        : expression_(std::move(expression))
+        : expression(std::move(expression))
     {}
 
     ~PrintStmt() override = default;
@@ -109,7 +109,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -117,13 +117,13 @@ public:
 
 struct ReturnStmt : StmtAst
 {
-    Token keyword_;
-    Ptr<ExprAst> value_;
+    Token keyword;
+    Ptr<ExprAst> value;
 
 public:
     explicit ReturnStmt(const Token& token, Ptr<ExprAst> expr)
-        : keyword_(token)
-        , value_(std::move(expr))
+        : keyword(token)
+        , value(std::move(expr))
     {}
 
     ~ReturnStmt() override = default;
@@ -131,7 +131,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -139,13 +139,13 @@ public:
 
 struct VarStmt : StmtAst
 {
-    Token name_;
-    Ptr<ExprAst> initializer_ = {};
+    Token name;
+    Ptr<ExprAst> initializer = {};
 
 public:
     explicit VarStmt(Token name, Ptr<ExprAst> init)
-        : name_(std::move(name))
-        , initializer_(std::move(init))
+        : name(std::move(name))
+        , initializer(std::move(init))
     {}
 
     ~VarStmt() override = default;
@@ -153,7 +153,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -175,7 +175,7 @@ public:
 public:
     void Accept(StmtVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 

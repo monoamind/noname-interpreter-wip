@@ -10,6 +10,7 @@ enum class TokenType
     Asterisk,
     BraceLeft,
     BraceRight,
+    Comma,
     Else,
     Equal,
     EqualEqual,

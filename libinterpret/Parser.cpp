@@ -9,7 +9,7 @@ using namespace Core;
 
 PtrVector<StmtAst> Parser::Parse()
 {
-    PtrVector<StmtAst> statements;
+    std::vector<Ptr<StmtAst>> statements;
 
     while (!IsAtEnd())
         statements.emplace_back(Declaration());
@@ -19,9 +19,48 @@ PtrVector<StmtAst> Parser::Parse()
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-void Parser::RecoverFromError()
+bool Parser::IsAtEnd() const noexcept
+{
+    return Peek().IsEof();
+}
+
+const Token& Parser::Peek() const
+{
+    return tokens_[pos_];
+}
+
+const Token& Parser::Previous() const
+{
+    return tokens_[pos_ -  1];
+}
+
+const Token& Parser::Advance()
+{
+    if (!IsAtEnd())
+        ++pos_;
+
+    return Previous();
+}
+
+bool Parser::Check(TokenType type) const
+{
+    return !IsAtEnd() && Peek().IsOfType(type);
+}
+
+Token Parser::Consume(TokenType type, const std::string& errorMsg)
+{
+    if (!Check(type))
+        throw RaiseError(Peek(), errorMsg);
+
+    return tokens_[pos_++];
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+void Parser::RecoverAfterError()
 {
     using enum TokenType;
+
     Advance();
 
     while (!IsAtEnd())

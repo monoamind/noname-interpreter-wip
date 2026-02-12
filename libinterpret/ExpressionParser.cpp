@@ -5,20 +5,22 @@ using namespace Core;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // <expression> ::= <assignment>
-// <assignment> ::= <variable_expr> "=" <expression>
-// <or>         ::= <and> ("or" <and>)*
-// <and>        ::= <equality> ("and" <equality>)*
+// <assignment> ::= ID "=" <assignment> | <logic_or>
+// <logic_or>   ::= <logic_and> ("or" <logic_and>)*
+// <logic_and>  ::= <equality> ("and" <equality>)*
 // <equality>   ::= <comparison> (("==" | "!=") <comparison>)*
 // <comparison> ::= <term> ((">" | ">=" | "<" | "<=") <term>)*
 // <term>       ::= <factor> (("+" | "-") <factor>)*
 // <factor>     ::= <unary> (("/" | "*") <unary>)*
-// <unary>      ::= ("-" | "!") <unary> | <primary>
-// <primary>    ::= NUMBER | STRING | "true" | "false" | "nil" | "("<expression>")"
+// <unary>      ::= ("-" | "!") <unary> | <call>
+// <call>       ::= <primary> ("(" <arguments>? ")")*
+// <primary>    ::= NUMBER | STRING | ID | "True" | "False" | "Null" | "("<expression>")"
+// <arguments>  ::= <expression> ("," <expression>)*
 // ---------------------------------------------------------------------------------------------------------------------
 
 Ptr<ExprAst> Parser::Expression()
 {
-    return Equality();
+    return Assignment();
 }
 
 Ptr<ExprAst> Parser::Assignment()
@@ -150,7 +152,41 @@ Ptr<ExprAst> Parser::Unary()
         return std::make_shared<UnaryExpr>(operatorTok, unary);
     }
 
-    return Primary();
+    return Call();
+}
+
+Ptr<ExprAst> Parser::FinishCall(Ptr<ExprAst> callee)
+{
+    using enum TokenType;
+
+    PtrVector<ExprAst> arguments;
+
+    if (!Check(ParenRight))
+    {
+        do
+        {
+            if (arguments.size() >= 255)
+                RaiseError(Peek(), "Can't have more than 255 arguments.");
+
+            arguments.emplace_back(Expression());
+        }
+        while (Match(Comma));
+    }
+
+    Token paren = Consume(ParenRight, "Expected ')' after arguments.");
+    return std::make_shared<CallExpr>(callee, paren, arguments);
+}
+
+Ptr<ExprAst> Parser::Call()
+{
+    auto expr = Primary();
+
+    while (Match(TokenType::ParenLeft))
+    {
+        expr = FinishCall(expr);
+    }
+
+    return expr;
 }
 
 Ptr<ExprAst> Parser::Primary()
@@ -169,6 +205,9 @@ Ptr<ExprAst> Parser::Primary()
 
     if (Match(Number, String))
         return std::make_shared<T>(Previous().Literal().value());
+
+    if (Match(Identifier))
+        return std::make_shared<VariableExpr>(Previous());
 
     if (Match(ParenLeft))
     {

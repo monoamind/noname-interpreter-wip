@@ -1,8 +1,9 @@
 #pragma once
 #include "ObjectType.h"
-
+#include <any>
 #include <string>
-#include <variant>
+
+namespace Core { class Function; }
 
 namespace Core
 {
@@ -10,9 +11,8 @@ namespace Core
 
 class Object
 {
-    using Variant = std::variant<double, std::string, bool, nullptr_t>;
+    using Variant = std::variant<double, bool, std::string, nullptr_t, std::shared_ptr<Function>>;
 
-private:
     Variant value_ = nullptr;
     ObjectType type_ = ObjectType::Null;
 
@@ -38,6 +38,11 @@ public:
         , type_(ObjectType::String)
     {}
 
+    Object(std::shared_ptr<Function>&& value_ptr)
+        : value_(std::move(value_ptr))
+        , type_(ObjectType::Function)
+    {}
+
     template <typename T>
     requires std::is_convertible_v<T, double>
     Object(T value)
@@ -54,16 +59,16 @@ public:
     ObjectType Type() const;
     std::string TypeName() const;
 
+    bool IsBool() const noexcept;
+    bool IsDouble() const noexcept;
+    bool IsFunction() const noexcept;
     bool IsNull() const noexcept;
-    bool IsNumeric() const noexcept;
     bool IsString() const noexcept;
 
-private:
     bool ToBool() const;
     double ToDouble() const;
-
-public:
     std::string ToString() const;
+    std::shared_ptr<Function> ToFunction() const;
 
     friend bool operator!(const Object& rhs);
     friend Object operator-(const Object& rhs);

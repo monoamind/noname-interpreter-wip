@@ -1,6 +1,6 @@
 #pragma once
+#include "Common.h"
 #include "Token.h"
-#include <regexp/RegExp.h>
 
 namespace Core
 {
@@ -24,26 +24,48 @@ public:
 private:
     void ScanToken();
 
-    void AddSymbol(TokenType type);
     void AddNumber();
     void AddString();
     void AddIdentifier();
 
-    bool IsAlpha(char ch) const;
-    bool IsAlphaNumeric(char ch) const;
-    bool IsAtEnd() const noexcept;
-    
-    char Advance();
-    char Peek() const;
-    bool Match(char expected);
+private:
+    bool IsAtEnd() const noexcept
+    {
+        return pos_ >= source_.size();
+    }
+
+    char Peek() const
+    {
+        if (IsAtEnd())
+            return EOF;
+
+        return source_[pos_];
+    }
+
+    char Advance()
+    {
+        if (IsAtEnd())
+            return EOF;
+
+        ++pos_;
+        return source_[pos_ - 1];
+    }
 
 private:
     inline const static std::unordered_map<std::string, TokenType> kwMap = {
-        {"and",   TokenType::And},
-        {"else",  TokenType::Else},
-        {"false", TokenType::False},
-        {"if",    TokenType::If},
-        {"print", TokenType::Print}
+        {"and",    TokenType::And},
+        {"else",   TokenType::Else},
+        {"False",  TokenType::False},
+        {"for",    TokenType::For},
+        {"func",   TokenType::Func},
+        {"if",     TokenType::If},
+        {"Null",   TokenType::Null},
+        {"or",     TokenType::Or},
+        {"print",  TokenType::Print},
+        {"return", TokenType::Return},
+        {"True",   TokenType::True},
+        {"var",    TokenType::Var},
+        {"while",  TokenType::While}
     };
 };
 

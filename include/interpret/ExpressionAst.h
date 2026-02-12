@@ -25,7 +25,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -33,15 +33,15 @@ public:
 
 struct BinaryExpr : ExprAst
 {
-    Ptr<ExprAst> left_ = {};
-    Token operator_;
-    Ptr<ExprAst> right_ = {};
+    Ptr<ExprAst> left = {};
+    Token operatorToken;
+    Ptr<ExprAst> right = {};
 
 public:
     explicit BinaryExpr(Ptr<ExprAst> left, Token op, Ptr<ExprAst> right)
-        : left_(std::move(left))
-        , operator_(std::move(op))
-        , right_(std::move(right))
+        : left(std::move(left))
+        , operatorToken(std::move(op))
+        , right(std::move(right))
     {}
 
     ~BinaryExpr() override = default;
@@ -49,7 +49,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -73,7 +73,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -81,11 +81,11 @@ public:
 
 struct GroupingExpr : ExprAst
 {
-    Ptr<ExprAst> expr_ = {};
+    Ptr<ExprAst> expr = {};
 
 public:
     explicit GroupingExpr(Ptr<ExprAst> expr)
-        : expr_(std::move(expr))
+        : expr(std::move(expr))
     {}
 
     ~GroupingExpr() override = default;
@@ -93,7 +93,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        return visitor.Visit(*this);
+        return visitor.Visit(this);
     }
 };
 
@@ -101,11 +101,11 @@ public:
 
 struct LiteralExpr : ExprAst
 {
-    Object value_;
+    Object value;
 
 public:
     explicit LiteralExpr(const Object& value)
-        : value_(std::move(value))
+        : value(std::move(value))
     {}
 
     ~LiteralExpr() override = default;
@@ -113,7 +113,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -121,15 +121,15 @@ public:
 
 struct LogicalExpr : ExprAst
 {
-    Ptr<ExprAst> left_;
-    Token op_;
-    Ptr<ExprAst> right_;
+    Ptr<ExprAst> left;
+    Token op;
+    Ptr<ExprAst> right;
 
 public:
     explicit LogicalExpr(Ptr<ExprAst> left, Token op, Ptr<ExprAst> right)
-        : left_(std::move(left))
-        , op_(std::move(op))
-        , right_(std::move(right))
+        : left(std::move(left))
+        , op(std::move(op))
+        , right(std::move(right))
     {}
 
     ~LogicalExpr() override = default;
@@ -137,7 +137,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -145,13 +145,13 @@ public:
 
 struct UnaryExpr : ExprAst
 {
-    Token op_;
-    Ptr<ExprAst> right_;
+    Token op;
+    Ptr<ExprAst> right;
 
 public:
     explicit UnaryExpr(Token op, Ptr<ExprAst> right)
-        : op_(std::move(op))
-        , right_(std::move(right))
+        : op(std::move(op))
+        , right(std::move(right))
     {}
 
     ~UnaryExpr() override = default;
@@ -159,7 +159,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 
@@ -179,7 +179,7 @@ public:
 public:
     void Accept(ExprVisitor& visitor) const override
     {
-        visitor.Visit(*this);
+        visitor.Visit(this);
     }
 };
 

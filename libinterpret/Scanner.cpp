@@ -1,8 +1,9 @@
 #include "Scanner.h"
 #include "Runner.h"
 
-using namespace Core;
+#include <regexp/RegExp.h>
 
+using namespace Core;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -13,7 +14,7 @@ const std::vector<Token>& Scanner::ScanTokens()
         ScanToken();
     }
 
-    tokens_.push_back(Token::Eof(line_));
+    tokens_.push_back(Token::EndOfFile(line_));
     return tokens_;
 }
 
@@ -23,104 +24,81 @@ void Scanner::ScanToken()
 {
     using enum TokenType;
 
-    char ch = Advance();
-
-    while (std::isspace(ch))
+    while (std::isspace(Peek()))
     {
-        if (ch == '\n')
+        if (Peek() == '\n')
             ++line_;
-        ch = Advance();
+        Advance();
     }
 
-    switch (ch)
+    if (Peek() == '"')
     {
-        case '(':
-            AddSymbol(ParenLeft);
-            return;
-        case ')':
-            AddSymbol(ParenRight);
-            return;
-        case '{':
-            AddSymbol(BraceLeft);
-            return;
-        case '}':
-            AddSymbol(BraceRight);
-            return;
-        case '-':
-            AddSymbol(Minus);
-            return;
-        case '+':
-            AddSymbol(Plus);
-            return;
-        case '*':
-            AddSymbol(Asterisk);
-            return;
-        case ';':
-            AddSymbol(Semicolon);
-            return;
-        case '!':
-            AddSymbol(Match('=') ? NotEqual : Not);
-            return;
-        case '=':
-            AddSymbol(Match('=') ? EqualEqual : Equal);
-            return;
-        case '<':
-            AddSymbol(Match('=') ? LessEqual : Less);
-            return;
-        case '>':
-            AddSymbol(Match('=') ? MoreEqual : More);
-            return;
-        case '/':
-            AddSymbol(Slash);
-            return;
-        case '\n':
-            line_++;
-            return;
-        case ' ':
-        case '\t':
-        case '\r':
-            return;
-        case '"':
-            AddString();
-            return;
-        default:
-            pos_--;
-            break;
+        Advance();
+        AddString();
+        return;
     }
 
-    if (std::isdigit(ch))
+    if (std::isdigit(Peek()))
     {
         AddNumber();
+        return;
     }
-    else if (std::isalpha(ch) || ch == '_')
+
+    if (std::isalpha(Peek()) || Peek() == '_')
     {
         AddIdentifier();
+        return;
+    }
+
+    if (Peek() == EOF)
+    {
+        Advance();
+        return;
+    }
+
+    Token token = Token::FromSymbol(Peek(), line_);
+    Advance();
+
+    if (token.IsOfType(More, Less, Not, Equal))
+    {
+        if (Peek() == '=')
+        {
+            Advance();
+            std::string twoSymbols = token.Lexeme() + '=';
+            token = Token::FromTwoSymbols(twoSymbols, line_);
+        }
+
+        tokens_.emplace_back(token);
+    }
+    else if (token.IsError())
+    {
+        Runner::Error(line_, std::format("Unexpected character: {}.", Peek()));
     }
     else
     {
-        Runner::Error(line_, "Unexpected character.");
+        tokens_.emplace_back(token);
     }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 void Scanner::AddIdentifier()
 {
-    Regex::RegExp regexp("[A-Za-z_][A-Za-z0-9_]");
+    Regex::RegExp regexp("[A-Za-z_][A-Za-z0-9_]*");
     auto str = regexp.LongestMatch(source_, pos_);
+    Token token;
 
     if (kwMap.contains(str))
     {
-        tokens_.emplace_back(kwMap.at(str), line_, str);
+        token = Token::FromKeyword(kwMap.at(str), str, line_);
     }
     else
     {
-        tokens_.emplace_back(TokenType::Identifier, line_, str);
+        token = Token::FromIdentifier(str, line_);
     }
-    pos_ += str.size();
-}
 
-void Scanner::AddSymbol(TokenType type)
-{
-    tokens_.emplace_back(type, line_);
+    tokens_.emplace_back(token);
+    pos_ += str.size();
 }
 
 void Scanner::AddNumber()
@@ -135,52 +113,14 @@ void Scanner::AddNumber()
 
 void Scanner::AddString()
 {
-    char ch = Advance();
     std::string str;
 
-    while (ch != '"' && !IsAtEnd())
+    while (Peek() != '"' && !IsAtEnd())
     {
-        str += ch;
-
-        if (ch == '\n')
-            line_++;
-
-        ch = Advance();
+        str += Peek();
+        Advance();
     }
 
+    Advance();
     tokens_.emplace_back(Token::FromString(str, line_));
-}
-
-char Scanner::Peek() const
-{
-    if (IsAtEnd())
-        return EOF;
-
-    return source_[pos_];
-}
-
-char Scanner::Advance()
-{
-    if (IsAtEnd())
-        return EOF;
-
-    ++pos_;
-    return source_[pos_ - 1];
-}
-
-bool Scanner::Match(char expected)
-{
-    if (IsAtEnd())
-        return false;
-
-    if (Peek() != expected)
-        return false;
-
-    ++pos_;
-    return true;
-}
-
-bool Scanner::IsAtEnd() const noexcept
-{
-    return pos_ >= source_.size();
 }

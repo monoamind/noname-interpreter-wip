@@ -1,6 +1,4 @@
 #pragma once
-#include <stdexcept>
-
 #include "Token.h"
 
 namespace Core

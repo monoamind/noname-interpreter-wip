@@ -1,4 +1,5 @@
 #include "Object.h"
+#include "Common.h"
 #include "Error.h"
 
 using namespace Core;
@@ -16,21 +17,32 @@ std::string Object::TypeName() const
 
     switch (type_)
     {
-        case Bool:   return "Bool";
-        case Double: return "Number";
-        case String: return "String";
-        default:     return "Null";
+        case Bool:     return "Bool";
+        case Double:   return "Number";
+        case String:   return "String";
+        case Function: return "Function";
+        default:       return "Null";
     }
+}
+
+bool Object::IsBool() const noexcept
+{
+    return type_ == ObjectType::Bool;
+}
+
+bool Object::IsDouble() const noexcept
+{
+    return type_ == ObjectType::Double;
+}
+
+bool Object::IsFunction() const noexcept
+{
+    return type_ == ObjectType::Function;
 }
 
 bool Object::IsNull() const noexcept
 {
     return type_ == ObjectType::Null;
-}
-
-bool Object::IsNumeric() const noexcept
-{
-    return (type_ == ObjectType::Double || type_ == ObjectType::Bool);
 }
 
 bool Object::IsString() const noexcept
@@ -50,7 +62,8 @@ double Object::ToDouble() const
             break;
     }
 
-    throw TypeError("Unsupported type.");
+    throw TypeError("Cannot convert to a number.");
+    return NAN;
 }
 
 bool Object::ToBool() const
@@ -68,6 +81,12 @@ bool Object::ToBool() const
     }
 }
 
+std::shared_ptr<Function> Object::ToFunction() const
+{
+    using T = std::shared_ptr<Function>;
+    return std::get<T>(value_);
+}
+
 std::string Object::ToString() const
 {
     switch (type_)
@@ -75,7 +94,7 @@ std::string Object::ToString() const
         case ObjectType::Bool:
             return ToBool() ? "True" : "False";
         case ObjectType::Double:
-            return std::to_string(ToDouble());
+            return std::format("{}", ToDouble());
         case ObjectType::String:
             return std::get<std::string>(value_);
         default:
@@ -163,6 +182,9 @@ Object Core::operator/(const Object& lhs, const Object& rhs)
 
 bool Core::operator==(const Object& lhs, const Object& rhs)
 {
+    if (lhs.IsString() && rhs.IsString())
+        return lhs.ToString() == rhs.ToString();
+
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -171,6 +193,9 @@ bool Core::operator==(const Object& lhs, const Object& rhs)
 
 bool Core::operator!=(const Object& lhs, const Object& rhs)
 {
+    if (lhs.IsString() && rhs.IsString())
+        return lhs.ToString() != rhs.ToString();
+
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -179,8 +204,6 @@ bool Core::operator!=(const Object& lhs, const Object& rhs)
 
 bool Core::operator>=(const Object& lhs, const Object& rhs)
 {
-    using enum ObjectType;
-
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -189,8 +212,6 @@ bool Core::operator>=(const Object& lhs, const Object& rhs)
 
 bool Core::operator<=(const Object& lhs, const Object& rhs)
 {
-    using enum ObjectType;
-
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -199,8 +220,6 @@ bool Core::operator<=(const Object& lhs, const Object& rhs)
 
 bool Core::operator>(const Object& lhs, const Object& rhs)
 {
-    using enum ObjectType;
-
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -209,8 +228,6 @@ bool Core::operator>(const Object& lhs, const Object& rhs)
 
 bool Core::operator<(const Object& lhs, const Object& rhs)
 {
-    using enum ObjectType;
-
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -219,8 +236,6 @@ bool Core::operator<(const Object& lhs, const Object& rhs)
 
 Object Core::operator&&(const Object& lhs, const Object& rhs)
 {
-    using enum ObjectType;
-
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 
@@ -229,8 +244,6 @@ Object Core::operator&&(const Object& lhs, const Object& rhs)
 
 Object Core::operator||(const Object& lhs, const Object& rhs)
 {
-    using enum ObjectType;
-
     auto x = lhs.ToDouble();
     auto y = rhs.ToDouble();
 

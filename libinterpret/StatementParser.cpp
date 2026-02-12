@@ -1,14 +1,98 @@
 #include "Parser.h"
+#include "Runner.h"
 #include "StatementAst.h"
 
 using namespace Core;
 
 // ---------------------------------------------------------------------------------------------------------------------
-// <program>    ::= <statement>* EOF
-// <statement>  ::= <expr_stmt> | <print_stmt>
-// <expr_stmt>  ::= expression ";"
-// <print_stmt> ::= "print" <expression> ";"
+// <program>     ::= <declaration>* EOF;
+// <declaration> ::= <func_decl> | <var_decl> | <statement>
+// <func_decl>   ::= "func" <function>
+// <function>    ::= ID "(" <parameters>? ")" block
+// <parameters>  ::= ID ("," ID)*
+// <block>       ::= "{" <declaration> "}"
+// <var_decl>    ::= "var" ID ("=" <expression>)? ";"
+// <statement>   ::= <expr_stmt> | <block> | <while_stmt> | <if_stmt> | <for_stmt> | <return_stmt> | <print_stmt>
+// <expr_stmt>   ::= <expression> ";"
+// <while_stmt>  ::= "while" "(" <expression> ")" <statement>
+// <if_stmt>     ::= "if" "(" <expression> ")" <statement> ("else" <statement>)?
+// <for_stmt>    ::= "for" "(" (<var_decl> | <expr_stmt> | ";") <expression>? ";" <expression>? ")" <statement>
+// <return_stmt> ::= "return" <expression>? ";"
+// <print_stmt>  ::= "print" <expression> ";"
 // ---------------------------------------------------------------------------------------------------------------------
+
+PtrVector<StmtAst> Parser::Block()
+{
+    PtrVector<StmtAst> statements;
+
+    while (!Check(TokenType::BraceRight) && !IsAtEnd())
+    {
+        statements.emplace_back(Declaration());
+    }
+
+    Consume(TokenType::BraceRight, "Expected '}' after block.");
+    return statements;
+}
+
+Ptr<FunctionStmt> Parser::Function(const std::string& kind)
+{
+    using enum TokenType;
+
+    Token name = Consume(Identifier, "Expected " + kind + " name.");
+    Consume(ParenLeft, "Expected '(' after " + kind + " name.");
+
+    Vector<Token> parameters = {};
+
+    if (!Check(ParenRight))
+    {
+        do
+        {
+            if (parameters.size() >= 255)
+                RaiseError(Peek(), "Can't have more than 255 parameters.");
+
+            parameters.emplace_back(Consume(Identifier, "Expect parameter name."));
+        }
+        while (Match(Comma));
+    }
+
+    Consume(ParenRight, "Expected ')' after parameters.");
+    Consume(BraceLeft, "Expected '{' before " + kind + " body.");
+
+    auto body = Block();
+    return std::make_shared<FunctionStmt>(name, parameters, body);
+}
+
+Ptr<StmtAst> Parser::Declaration()
+{
+    try
+    {
+        if (Match(TokenType::Func))
+            return Function("function");
+
+        if (Match(TokenType::Var))
+            return VarDeclaration();
+
+        return Statement();
+    }
+    catch (ParseError& error)
+    {
+        Runner::Error(line_, error.what());
+        RecoverAfterError();
+        return nullptr;
+    }
+}
+
+Ptr<StmtAst> Parser::VarDeclaration()
+{
+    Token name = Consume(TokenType::Identifier, "Expected variable name.");
+    Ptr<ExprAst> initializer = nullptr;
+
+    if (Match(TokenType::Equal))
+        initializer = Expression();
+
+    Consume(TokenType::Semicolon, "Expected ';' after variable declaration.");
+    return std::make_shared<VarStmt>(name, initializer);
+}
 
 Ptr<StmtAst> Parser::Statement()
 {
@@ -35,50 +119,6 @@ Ptr<StmtAst> Parser::Statement()
     return ExpressionStatement();
 }
 
-Ptr<StmtAst> Parser::Declaration()
-{
-    try
-    {
-        if (Match(TokenType::Func))
-            return nullptr; // Function("function");
-
-        if (Match(TokenType::Var))
-            return VarDeclaration();
-
-        return Statement();
-    }
-    catch (ParseError& error)
-    {
-        RecoverFromError();
-        return nullptr;
-    }
-}
-
-Ptr<StmtAst> Parser::VarDeclaration()
-{
-    Token name = Consume(TokenType::Identifier, "Expect variable name.");
-    Ptr<ExprAst> initializer = nullptr;
-
-    if (Match(TokenType::Equal))
-        initializer = Expression();
-
-    Consume(TokenType::Semicolon, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, initializer);
-}
-
-PtrVector<StmtAst> Parser::Block()
-{
-    PtrVector<StmtAst> statements;
-
-    while (!Check(TokenType::BraceRight) && !IsAtEnd())
-    {
-        statements.emplace_back(Declaration());
-    }
-
-    Consume(TokenType::BraceRight, "Expect '}' after block.");
-    return statements;
-}
-
 Ptr<StmtAst> Parser::ExpressionStatement()
 {
     auto expr = Expression();
@@ -91,7 +131,7 @@ Ptr<StmtAst> Parser::ForStatement()
 {
     using enum TokenType;
 
-    Consume(ParenLeft, "Expect '(' after 'for'.");
+    Consume(ParenLeft, "Expected '(' after 'for'.");
 
     Ptr<StmtAst> initializer;
 
@@ -113,14 +153,14 @@ Ptr<StmtAst> Parser::ForStatement()
     if (!Check(Semicolon))
         condition = Expression();
 
-    Consume(Semicolon, "Expect ';' after loop condition.");
+    Consume(Semicolon, "Expected ';' after loop condition.");
 
     Ptr<ExprAst> increment = nullptr;
 
     if (!Check(ParenRight))
         increment = Expression();
 
-    Consume(ParenRight, "Expect ')' after for clauses.");
+    Consume(ParenRight, "Expected ')' after for clauses.");
 
     Ptr<StmtAst> body = Statement();
 
@@ -146,9 +186,9 @@ Ptr<StmtAst> Parser::ForStatement()
 
 Ptr<StmtAst> Parser::IfStatement()
 {
-    Consume(TokenType::ParenLeft, "Expect '(' after 'if'.");
+    Consume(TokenType::ParenLeft, "Expected '(' after 'if'.");
     auto condition = Expression();
-    Consume(TokenType::ParenRight, "Expect ')' after if condition.");
+    Consume(TokenType::ParenRight, "Expected ')' after if condition.");
 
     Ptr<StmtAst> thenBranch = Statement();
     Ptr<StmtAst> elseBranch = nullptr;
@@ -162,7 +202,7 @@ Ptr<StmtAst> Parser::IfStatement()
 Ptr<StmtAst> Parser::PrintStatement()
 {
     auto value = Expression();
-    Consume(TokenType::Semicolon, "Expect ';' after value.");
+    Consume(TokenType::Semicolon, "Expected ';' after value.");
 
     return std::make_shared<PrintStmt>(value);
 }
@@ -177,16 +217,16 @@ Ptr<StmtAst> Parser::ReturnStatement()
         value = Expression();
     }
 
-    Consume(TokenType::Semicolon, "Expect ';' after return value.");
+    Consume(TokenType::Semicolon, "Expected ';' after return value.");
     return std::make_shared<ReturnStmt>(keyword, value);
 }
 
 Ptr<StmtAst> Parser::WhileStatement()
 {
-    Consume(TokenType::ParenLeft, "Expect '(' after 'while'.");
+    Consume(TokenType::ParenLeft, "Expected '(' after 'while'.");
     Ptr<ExprAst> condition = Expression();
 
-    Consume(TokenType::ParenRight, "Expect ')' after condition.");
+    Consume(TokenType::ParenRight, "Expected ')' after condition.");
     Ptr<StmtAst> body = Statement();
 
     return std::make_shared<WhileStmt>(condition, body);
