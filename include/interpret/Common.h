@@ -1,5 +1,7 @@
 #pragma once
 #include <charconv>
+#include <cmath>
+#include <deque>
 #include <format>
 #include <iostream>
 #include <map>
@@ -7,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace Core

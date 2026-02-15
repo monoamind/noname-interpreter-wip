@@ -1,7 +1,6 @@
 #pragma once
 #include "ObjectType.h"
-#include <any>
-#include <string>
+#include "Common.h"
 
 namespace Core { class Function; }
 

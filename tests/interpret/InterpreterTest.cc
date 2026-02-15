@@ -2,7 +2,6 @@
 #include <interpret/Runner.h>
 #include <interpret/Utils/PrintVisitor.h>
 
-#include <regex>
 #include <gtest/gtest.h>
 
 using namespace Core;
