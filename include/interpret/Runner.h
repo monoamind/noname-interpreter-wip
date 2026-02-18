@@ -38,6 +38,18 @@ public:
         return interpreter_.Result();
     }
 
+    static void RunFile(const std::string& file)
+    {
+        std::stringstream src;
+        std::ifstream ifs(file);
+
+        using I = std::istreambuf_iterator<char>;
+        using O = std::ostreambuf_iterator<char>;
+
+        std::copy(I(ifs.rdbuf()), I(), O(src));
+        Run(src.str());
+    }
+
     static void RunPrompt()
     {
         std::string source = {};
@@ -47,8 +59,13 @@ public:
             std::cout << "> ";
             std::getline(std::cin, source);
 
-            Run(source);
+            if (source == "exit();" || source == "quit();")
+            {
+                hadError_ = false;
+                break;
+            }
 
+            Run(source);
             hadError_ = false;
         }
     }

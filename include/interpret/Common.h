@@ -3,9 +3,11 @@
 #include <cmath>
 #include <deque>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
