@@ -1,3 +1,3 @@
 # noname-interpreter-wip
 Interpreter for a script programming language (work in progress).
-For now, simple regexp engine is implemented and published. Interpreter is in progress.
+Three walking interpretation is almost done, working on more fast approach - bytecode and VM.
